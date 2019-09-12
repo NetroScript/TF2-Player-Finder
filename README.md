@@ -25,6 +25,12 @@ The script should automatically also close when you close TF2.
 * Execute the file with `python main.py` (in the console with the folder where main.py resides as working directory - to simplify this just create a `run.bat` in the directory with the same content)
 * Enjoy
 
+## Screenshot
+
+Adding myself to the list, starting up the script for the first time, starting TF2 and then joining a random server and pressing F9 looks like this:
+
+![Preview](https://i.imgur.com/ppvNn8j.png)
+
 ## Changelog
 
 /
