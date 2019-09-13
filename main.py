@@ -172,6 +172,7 @@ print("Starting to parse log file")
 with open(scan_log, encoding="utf8", errors='ignore') as f:
     started_status = False
     buffer = []
+    read_number_of_lines = 0
     while keep_running:
         line = f.readline()
         read_to_line+=1
@@ -186,8 +187,11 @@ with open(scan_log, encoding="utf8", errors='ignore') as f:
                     keep_running = False
 
                 elif started_status:
-                    if line.startswith("Ending Known Player Check Status"):
+                    read_number_of_lines+=1
+                    # Additional sanity check for the case of the commands not being executed in the correct order
+                    if (line.startswith("Ending Known Player Check Status") and read_number_of_lines > 9) or read_number_of_lines >= 100:
                         started_status = False
+                        read_number_of_lines = 0
 
                         # Do stuff
                         for player in buffer:
