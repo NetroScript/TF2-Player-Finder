@@ -1,9 +1,9 @@
+# Script version 1.1
 import psutil
 import os
 import re
 import time
 import json
-
 
 steampath = ""
 steamlibraries = []
@@ -13,7 +13,7 @@ known_players = []
 def tf2_steam_id_to_id64(usteamid):
     return int(usteamid) + 76561197960265728
 
-
+# Search for the TF2 Folder and save it in settings
 def setup():
     global steampath
     global steamlibraries
@@ -72,6 +72,7 @@ def setup():
 
 print("Loading list with known players")
 
+# Load all player ids as int
 with open("./player_list.txt") as file:
     data = file.readlines()
     for line in data:
@@ -86,6 +87,7 @@ with open("./player_list.txt") as file:
 print("Loaded " + str(len(known_players)) + " players of the list")
 
 
+# If settings file exists load the tf2 path, if not create it
 if os.path.isfile("./settings"):
     try:
         with open("./settings", "r") as file:
@@ -102,23 +104,23 @@ else:
     setup()
 
 
-
+# Create the helper script which is executed
 with open(os.path.join(tf2_path, "tf", "cfg", "known_player_check.cfg"), "w") as file:
     file.write('''
 echo "Starting Known Player Check Status"
 status
 echo "Ending Known Player Check Status"''')
 
+# List of config files to which is written
 config_files = [os.path.join(tf2_path, "tf", "cfg", "autoexec.cfg"), os.path.join(tf2_path, "tf", "cfg", "custom.cfg")]
+
 exists = 0
-
-
-
 
 for config_file in config_files:
     if os.path.isfile(config_file):
         exists+=1
-
+        
+        # Add the main script to the auto executed files, if we had a previous script version remove that first
         with open(config_file, "r+") as file:
             config = file.read()
             config = re.sub(r"\n\n\/\/##########################TF2KPC_B.+\/\/##########################TF2KPC_E", "", config, 0, re.MULTILINE | re.IGNORECASE | re.DOTALL)
@@ -133,39 +135,22 @@ bind F9 "exec known_player_check"
             file.seek(0)
             file.write(config)
 
+if exists == 0:
+    print("Either a autoexec.cfg or a custom.cfg (if you use mastercomfig) is missing")
+    print("Please create one first")
+    input("This will close after you enter any key")
+    exit(0)
+
+# Log file which is scanned
 scan_log = os.path.join(tf2_path, "tf", "console.log")
 
 if not os.path.isfile(scan_log):
     open(scan_log, 'a').close()
 
-if not os.path.isfile("./linecount"):
-    with open("./linecount", "w") as file:
-        file.write(str(sum(1 for line in open(scan_log, encoding="utf8", errors='ignore'))))
-
-started_at_line = 0
-
-errored = False
-
-with open("./linecount", "r") as file:
-    try:
-        started_at_line = int(file.read())
-    except Exception as e:
-        errored = True
-
-
-if errored:
-    print(
-        "Exception happened while reading the line count, it was deleted, restart the application to"
-        " try again and to regenerate it")
-    os.remove("./linecount")
-    exit(0)
-
+# On application start check how many log lines are in the file
+started_at_line = sum(1 for line in open(scan_log, encoding="utf8", errors='ignore'))
 read_to_line = 0
-
 player_regex = re.compile("^#\s+\d+\s+?\"(.*)\"\s+\[U:1:(\d+)\]")
-
-
-keep_running = True
 
 print("Starting to parse log file")
 
@@ -173,27 +158,18 @@ with open(scan_log, encoding="utf8", errors='ignore') as f:
     started_status = False
     buffer = []
     read_number_of_lines = 0
-    while keep_running:
+    while True:
         line = f.readline()
         read_to_line+=1
         if line:
-
             if read_to_line > started_at_line:
-
-                if line.startswith("Shutdown function"):
-                    with open("./linecount", "w") as file:
-                        file.write(str(read_to_line))
-                    print("TF2 closed, so we are also exiting the program c:")
-                    keep_running = False
-
-                elif started_status:
+                if started_status:
                     read_number_of_lines+=1
                     # Additional sanity check for the case of the commands not being executed in the correct order
                     if (line.startswith("Ending Known Player Check Status") and read_number_of_lines > 9) or read_number_of_lines >= 100:
                         started_status = False
                         read_number_of_lines = 0
 
-                        # Do stuff
                         for player in buffer:
                             result = re.match(player_regex, player)
                             if result:
@@ -202,6 +178,8 @@ with open(scan_log, encoding="utf8", errors='ignore') as f:
                                 if id in known_players:
                                     print("Found Known Player: ")
                                     print(result.group(1) + " | (" + str(id) + ")")
+                                    # Play sound file
+                                    print("\007")
                             else:
                                 if player.startswith("map"):
                                     print("Current Map: " + player.split(": ")[1].split(" at")[0])
@@ -209,7 +187,6 @@ with open(scan_log, encoding="utf8", errors='ignore') as f:
                         buffer = []
                     else:
                         buffer.append(line)
-
                 elif line.startswith("Starting Known Player Check Status"):
                     started_status = True
         else:

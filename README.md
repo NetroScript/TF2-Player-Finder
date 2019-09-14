@@ -33,7 +33,11 @@ Adding myself to the list, starting up the script for the first time, starting T
 
 ## Changelog
 
-/
+### 1.1
+
+* It now doesn't keep track of how many lines the script parsed of the log but always starts at the end of the log now
+* It now warns the user if there is no autoexec.cfg or custom.cfg available
+* Now plays a sound if a known player is found
 
 ## Planned Features
 
