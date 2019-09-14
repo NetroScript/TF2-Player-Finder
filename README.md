@@ -14,8 +14,6 @@ This application needs to find your TF2 installation, to do that it just needs S
 The by default list is a list of "cheaters" because my friend wanted to quickly check if any cheater (of the ones he encountered before) is on the current server. 
 This method isn't dependant on player name or avatar so it is quicker than manually checking all players.
 
-The script should automatically also close when you close TF2.
-
 ## Installation
 
 * Download this as zip and extract it to the folder where you want it to be
